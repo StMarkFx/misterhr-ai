@@ -160,60 +160,66 @@ graph TB
 ## Agentic AI Workflow Architecture
 
 ```mermaid
-stateDiagram-v2
-    [*] --> RoleSelection
+flowchart TD
+    subgraph "Shared Entry Point"
+        Start([User Login]) --> ModeSelect{Select Role Mode}
+        ModeSelect -->|Applicant Mode| A1[Initialize Session]
+        ModeSelect -->|Recruiter Mode| R1[Load Applications]
+    end
 
-    RoleSelection --> InputValidation: Select Mode
-    InputValidation --> PermissionCheck: Validate Input
+    subgraph "Applicant Workflow"
+        A1 --> A2[Profile Analysis<br/>Load User Data]
+        A2 --> A3{Confidence Check}
+        A3 -->|High Confidence| A4[AI Job Matching<br/>Direct Processing]
+        A3 -->|Low Confidence| HITL1{HITL Intervention<br/>"Human Input Needed"}
 
-    PermissionCheck --> ApplicantGraph: Applicant Mode
-    PermissionCheck --> RecruiterGraph: Recruiter Mode
+        HITL1 --> A5[Human Steers Analysis<br/>Chat Commands + Sliders]
+        A5 --> A4
 
-    %% Applicant Workflow
-    state ApplicantGraph as "Applicant Workflow"
-    ApplicantGraph --> LoadHistory: Initialize Session
-    LoadHistory --> ProfileAnalysis: Load User Profile
-    ProfileAnalysis --> HITL_Intervention1: {High Uncertainty?}
+        A4 --> A6[Content Generation<br/>Tailored Resume/CV]
+        A6 --> A7{Confidence Check}
+        A7 -->|High Confidence| A8[Final Document<br/>Auto-Approval]
+        A7 -->|Low Confidence| HITL2{HITL Intervention<br/>"Refine Content?"}
 
-    HITL_Intervention1 --> HumanReview1: Pause for Input
-    HumanReview1 --> RefineAnalysis: Adjust Parameters
+        HITL2 --> A9[Human Content Review<br/>Chat Adjustments]
+        A9 --> A8
 
-    RefineAnalysis --> JobMatching: Match Profile to Jobs
-    JobMatching --> ContentGeneration: Generate Tailored Content
-    ContentGeneration --> HITL_Intervention2: {Confidence < Threshold?}
+        A8 --> A10[Version Control<br/>Save & History]
+        A10 --> End1([Complete])
+    end
 
-    HITL_Intervention2 --> HumanReview2: Pause for Refinement
-    HumanReview2 --> FinalizeDocuments: Apply Human Adjustments
+    subgraph "Recruiter Workflow"
+        R1 --> R2[AI Screening<br/>Multi-Criteria Analysis]
+        R2 --> R3{Candidate Pool<br/>Ready?}
 
-    FinalizeDocuments --> VersionControl: Save Versions
-    VersionControl --> Communication: Send Notifications
-    Communication --> [*]: Complete Session
+        R3 -->|Needs Adjustment| HITL3{HITL Intervention<br/>"Review Criteria?"}
+        HITL3 --> R4[Human Parameter Tuning<br/>Adjust Weights/Bias]
+        R4 --> R2
 
-    %% Recruiter Workflow
-    state RecruiterGraph as "Recruiter Workflow"
-    RecruiterGraph --> LoadCandidates: Load Job Applications
-    LoadCandidates --> AICandidateScreening: Multi-Criteria Evaluation
-    AICandidateScreening --> RankingAlgorithm: Sort by Relevance
-    RankingAlgorithm --> HITL_Intervention3: {Top Candidates Uncertain?}
+        R3 -->|Acceptable| R5[AI Ranking<br/>Top Candidates]
+        R5 --> R6{Confidence Check}
+        R6 -->|High Confidence| R7[Generate Report<br/>Auto-Finalize]
+        R6 -->|Low Confidence| HITL4{HITL Intervention<br/>"Override Rankings?"}
 
-    HITL_Intervention3 --> HumanOversight: Review & Adjust Weights
-    HumanOversight --> RerunScreening: Process with New Parameters
+        HITL4 --> R8[Human Ranking Review<br/>Approve/Reorder]
+        R8 --> R7
 
-    RerunScreening --> GenerateReport: Create Evaluation Summary
-    GenerateReport --> WorkflowIntegration: Record Decisions
-    WorkflowIntegration --> [*]: Complete Screening
+        R7 --> R9[Hiring Workflow<br/>Record Decisions]
+        R9 --> End2([Complete])
+    end
 
-    %% Shared Components
-    state HITL_Intervention1 as "HITL Pause Point"
-    state HITL_Intervention2 as "HITL Pause Point"
-    state HITL_Intervention3 as "HITL Pause Point"
-    state HumanReview1 as "Human Review Interface"
-    state HumanReview2 as "Human Review Interface"
-    state HumanOversight as "Human Oversight Interface"
+    HITL1 -->|"Chat Commands<br/>Slider Adjustments"| A5
+    HITL2 -->|"Refine Style<br/>Add Content"| A9
+    HITL3 -->|"Adjust Scoring<br/>Bias Review"| R4
+    HITL4 -->|"Manual Ordering<br/>Approve Selection"| R8
 
-    note right of HITL_Intervention1 : AI pauses for human expertise
-    note right of HumanReview1 : Confidence sliders & chat input
-    note right of HITL_Intervention3 : Bias detection & handoff decisions
+    style Start fill:#e8f5e8
+    style A1 fill:#e1f5fe
+    style R1 fill:#f3e5f5
+    style HITL1 fill:#fff8e1
+    style HITL2 fill:#fff8e1
+    style HITL3 fill:#fff8e1
+    style HITL4 fill:#fff8e1
 ```
 
 ## Data Flow Architecture
